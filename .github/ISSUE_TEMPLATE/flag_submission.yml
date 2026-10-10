@@ -1,0 +1,13 @@
+name: Flag Submission
+description: Submit a challenge flag here.
+title: "FLAG SUBMISSION: "
+labels: ["flag"]
+body:
+  - type: textarea
+    id: flag
+    attributes:
+      label: Flag
+      description: Enter the extracted flag for Level 3 here.
+      placeholder: FLAG: evil-c2.com
+    validations:
+      required: true

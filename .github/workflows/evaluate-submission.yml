@@ -1,0 +1,58 @@
+name: Evaluate Submission
+on:
+  pull_request:
+    types: [opened, synchronize]
+  issues:
+    types: [opened, edited]
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout Base Repo (Protected Tests)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: 'main'
+          path: 'base-repo'
+
+      - name: Checkout PR/Issue Content
+        if: github.event_name == 'pull_request'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          path: 'submission-repo'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run Evaluator Script
+        id: eval
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ACTOR: ${{ github.actor }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          # Copy scripts from trusted base
+          cp base-repo/scripts/evaluator.py .
+          python evaluator.py
+
+      - name: Create Score Artifact
+        if: success()
+        run: |
+          cp base-repo/scripts/scoreboard.py .
+          python scoreboard.py log --player ${{ github.actor }} --time $(date +%s)
+          
+      - name: Upload Score Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: score-${{ github.actor }}-${{ github.run_id }}
+          path: player_score.json
+          retention-days: 1

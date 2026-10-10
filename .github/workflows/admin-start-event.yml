@@ -1,0 +1,67 @@
+name: Admin Start Event
+on:
+  workflow_dispatch:
+    inputs:
+      event_name:
+        description: 'Name of the Competition'
+        required: true
+        default: 'CyberSec Awareness Q3'
+      duration_minutes:
+        description: 'Duration in minutes'
+        required: true
+        default: '15'
+      release_mode:
+        description: 'Challenge Release Mode (public, protected)'
+        required: true
+        default: 'public'
+        type: choice
+        options:
+          - public
+          - protected
+
+jobs:
+  initialize_event:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Set Event Variables and Limits
+        id: setup
+        run: |
+          START_EPOCH=$(date +%s)
+          DURATION_SEC=$(( ${{ github.event.inputs.duration_minutes }} * 60 ))
+          CUTOFF_EPOCH=$(( START_EPOCH + DURATION_SEC ))
+          
+          echo "START_EPOCH=$START_EPOCH" >> $GITHUB_ENV
+          echo "CUTOFF_EPOCH=$CUTOFF_EPOCH" >> $GITHUB_ENV
+          
+          # Initialize state file (in a real-world scenario, you'd push this to a protected branch or use GH variables)
+          echo '{"event_name": "${{ github.event.inputs.event_name }}", "start": '$START_EPOCH', "cutoff": '$CUTOFF_EPOCH', "status": "active"}' > event-state.json
+          
+      - name: Commit State File
+        run: |
+          git config user.name "Event Admin Bot"
+          git config user.email "bot@cyberarena.local"
+          git add event-state.json
+          git commit -m "Admin: Started Event [${{ github.event.inputs.event_name }}]"
+          git push origin main
+
+      - name: Countdown & Buffer Phase
+        run: |
+          echo "Competition started! Will wait for duration: ${{ github.event.inputs.duration_minutes }}m"
+          sleep ${{ github.event.inputs.duration_minutes }}m
+          
+          echo "Cutoff reached! Entering 2-minute Admin Buffer..."
+          sleep 2m
+          
+      - name: Trigger Publish Results
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'publish-results.yml',
+              ref: 'main'
+            })

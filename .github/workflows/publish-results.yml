@@ -1,0 +1,35 @@
+name: Publish Results
+on:
+  workflow_dispatch:
+
+jobs:
+  publish_leaderboard:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all Score Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: scores
+          merge-multiple: true
+
+      - name: Generate Leaderboard
+        run: |
+          python scripts/scoreboard.py generate
+          
+      - name: Append Results to README
+        run: |
+          cat final_leaderboard.md >> README.md
+          git config user.name "Event Admin Bot"
+          git config user.email "bot@cyberarena.local"
+          git add README.md
+          git commit -m "Admin: Publish Final Leaderboard"
+          git push origin main
