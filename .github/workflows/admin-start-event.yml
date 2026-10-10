@@ -47,6 +47,26 @@ jobs:
           git commit -m "Admin: Started Event [${{ github.event.inputs.event_name }}]"
           git push origin main
 
+      - name: Generate Participant Links
+        run: |
+          echo "==========================================================="
+          echo "🏁 COMPETITION IS LIVE! Share these links with your team 🏁"
+          echo "==========================================================="
+          echo ""
+          echo "📢 Repository Dashboard (Rules & Leaderboard):"
+          echo "https://github.com/${{ github.repository }}"
+          echo ""
+          echo "🎯 Level 1 (Secrets in Code) - Direct Edit Link:"
+          echo "https://github.com/${{ github.repository }}/edit/main/challenges/level1/config.json"
+          echo ""
+          echo "🎯 Level 2 (Typosquatting) - Direct Edit Link:"
+          echo "https://github.com/${{ github.repository }}/edit/main/challenges/level2/package.json"
+          echo ""
+          echo "🎯 Level 3 (C2 Analysis) - Direct Submission Link:"
+          echo "https://github.com/${{ github.repository }}/issues/new?template=flag_submission.yml&title=FLAG%20SUBMISSION%3A%20&body=FLAG%3A%20"
+          echo ""
+          echo "==========================================================="
+
       - name: Countdown & Buffer Phase
         run: |
           echo "Competition started! Will wait for duration: ${{ github.event.inputs.duration_minutes }}m"
