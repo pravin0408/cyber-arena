@@ -48,3 +48,6 @@ To capture the flag, open an Issue in this repository formatting your text as:
 ---
 
 <!-- The final leaderboard will be appended below by the publish-results GitHub Action -->
+## Final Competition Leaderboard
+
+> No valid submissions recorded.
